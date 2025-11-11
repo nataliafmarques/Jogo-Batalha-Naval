@@ -1,0 +1,126 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definições de constantes
+#define TAMANHO_TABULEIRO 10
+#define TAMANHO_NAVIO 3
+#define TAMANHO_HABILIDADE 5 
+
+// Valores no tabuleiro
+#define AGUA 0
+#define NAVIO 3
+#define AFETADO 5 
+
+// --- FUNÇÕES DE LÓGICA ---
+
+void inicializar_tabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
+    for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
+        for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+            tabuleiro[i][j] = AGUA;
+        }
+    }
+}
+
+void posicionar_navio_horizontal(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha, int coluna) {
+    if (coluna + TAMANHO_NAVIO <= TAMANHO_TABULEIRO) {
+        for (int j = 0; j < TAMANHO_NAVIO; j++) {
+            tabuleiro[linha][coluna + j] = NAVIO; 
+        }
+    }
+}
+
+void criar_cruz(int matriz_habilidade[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE]) {
+    int centro = TAMANHO_HABILIDADE / 2;
+
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = 0; j < TAMANHO_HABILIDADE; j++) {
+            // Se estiver na linha central (i==2) OU na coluna central (j==2), é 1 (afetado)
+            if (i == centro || j == centro) {
+                matriz_habilidade[i][j] = 1;
+            } else {
+                matriz_habilidade[i][j] = 0; 
+            }
+        }
+    }
+}
+
+void sobrepor_habilidade(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], 
+                          int matriz_habilidade[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE], 
+                          int centro_linha, int centro_coluna) {
+    
+    int offset = TAMANHO_HABILIDADE / 2; 
+
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = 0; j < TAMANHO_HABILIDADE; j++) {
+            
+            int linha_tab = centro_linha + (i - offset);
+            int coluna_tab = centro_coluna + (j - offset);
+            
+            // Verifica se a posição está dentro do limite 0-9
+            if (linha_tab >= 0 && linha_tab < TAMANHO_TABULEIRO && 
+                coluna_tab >= 0 && coluna_tab < TAMANHO_TABULEIRO) {
+                
+                // Se a habilidade afeta essa posição (valor 1)
+                if (matriz_habilidade[i][j] == 1) {
+                    // Só marca se for ÁGUA (0)
+                    if (tabuleiro[linha_tab][coluna_tab] == AGUA) {
+                        tabuleiro[linha_tab][coluna_tab] = AFETADO; 
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- FUNÇÃO DE EXIBIÇÃO ---
+
+void exibir_tabuleiro_simples(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
+    printf("\n    0 1 2 3 4 5 6 7 8 9\n"); 
+    printf("  +---------------------+\n");
+
+    for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
+        printf("%d | ", i); 
+        for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+            char simbolo;
+            if (tabuleiro[i][j] == NAVIO) {
+                simbolo = '#'; // Navio
+            } else if (tabuleiro[i][j] == AFETADO) {
+                simbolo = 'X'; // Área Afetada
+            } else {
+                simbolo = '.'; // Água
+            }
+            printf("%c ", simbolo);
+        }
+        printf("|\n");
+    }
+    printf("  +---------------------+\n");
+    printf("\nLegenda: . = Água, # = Navio, X = Área Afetada\n");
+}
+
+
+// --- FUNÇÃO PRINCIPAL ---
+int main() {
+    int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
+    int cruz[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE];
+
+    // 1. Inicializar o Tabuleiro
+    inicializar_tabuleiro(tabuleiro);
+
+    // 2. Posicionar Navios (tamanho 3)
+    posicionar_navio_horizontal(tabuleiro, 2, 1); 
+    posicionar_navio_horizontal(tabuleiro, 4, 6); 
+
+    // 3. Criar e Sobrepor Habilidade CRUZ (Centrada em (5, 5))
+    int centro_l = 5;
+    int centro_c = 5;
+    
+    criar_cruz(cruz);
+    sobrepor_habilidade(tabuleiro, cruz, centro_l, centro_c);
+
+    printf("Tabuleiro 10x10 com Navios e Habilidade CRUZ (Centrada em (%d, %d))\n", centro_l, centro_c);
+
+    // 4. Exibir o Tabuleiro
+    exibir_tabuleiro_simples(tabuleiro);
+    
+    return 0;
+}
